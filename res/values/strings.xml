@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- General app strings -->
+    <string name="app_name">Pine</string>
+
+    <string name="popular">Popular</string>
+    <string name="everyone">Everyone</string>
+    <string name="debut">Debut</string>
+    <string name="shot_loaded">Shots loaded:</string>
+
+    <string name="send_to">Send to…</string>
+
+    <string name="load_more">Load more</string>
+    <string name="page">page</string>
+    <string name="of">of</string>
+
+    <!-- Menu strings -->
+    <string name="menu_reload">Reload</string>
+    <string name="menu_share">Share</string>
+    <string name="menu_view_in_browser">View in browser</string>
+
+    <!-- Shot view strings -->
+    <string name="comments">Comments</string>
+
+    <string name="player">player:</string>
+    <string name="date">date:</string>
+
+    <string name="views">views</string>
+    <string name="likes">likes</string>
+
+    <!-- Errors strings -->
+    <string name="error_parse_json">Error while parsing server response.</string>
+</resources>

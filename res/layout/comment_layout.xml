@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent">
+
+    <ImageView android:id="@+id/comment_player_avatar"
+               android:layout_width="52dp"
+               android:layout_height="52dp"
+               android:layout_marginTop="5dp"
+               android:padding="2dp"
+               android:background="@color/White"/>
+
+    <LinearLayout android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:layout_weight="1"
+                  android:orientation="vertical"
+                  android:layout_marginTop="5dp"
+                  android:layout_marginLeft="10dp">
+
+        <TextView android:id="@+id/comment_player_name"
+                  android:layout_width="fill_parent"
+                  android:layout_height="wrap_content"
+                  android:layout_marginBottom="10dp"
+                  android:textColor="@color/DarkWark"
+                  android:textStyle="bold"
+                  android:textSize="18sp"/>
+
+        <TextView android:id="@+id/comment_body"
+                  android:layout_width="fill_parent"
+                  android:layout_height="wrap_content"
+                  android:layout_marginBottom="10dp"
+                  android:textColor="@color/DarkGrey"/>
+
+        <TextView android:id="@+id/comment_created_at"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:layout_marginBottom="10dp"
+                  android:textColor="@color/Grey"
+                  android:textSize="12sp"/>
+
+    </LinearLayout>
+
+</LinearLayout>
