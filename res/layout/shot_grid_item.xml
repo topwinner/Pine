@@ -19,7 +19,8 @@
 
         <ImageView android:id="@+id/teaser_image"
                    android:layout_width="200dp"
-                   android:layout_height="150dp"/>
+                   android:layout_height="150dp"
+                   android:layout_gravity="center"/>
 
         <TextView android:id="@+id/shot_title"
                   android:layout_width="wrap_content"

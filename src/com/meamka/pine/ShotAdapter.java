@@ -51,8 +51,8 @@ public class ShotAdapter extends BaseAdapter {
         grid.setTag(position);
 
         ImageView imageView = (ImageView)grid.findViewById(R.id.teaser_image);
-        imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        imageView.setPadding(2, 2, 2, 2);
+//        imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+//        imageView.setPadding(2, 2, 2, 2);
         UrlImageViewHelper.setUrlDrawable(imageView, data.get(position).getImageTeaserUrl().toString());
 
         TextView shotTitleView = (TextView)grid.findViewById(R.id.shot_title);

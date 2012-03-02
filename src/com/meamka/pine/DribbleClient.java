@@ -35,24 +35,21 @@ public class DribbleClient {
     }
 
     public DribbleClient() {
-        params = new RequestParams();
-        params.put("per_page", Integer.toString(per_page));
-        params.put("page", Integer.toString(page));
     }
 
     public void getPopularShots(AsyncHttpResponseHandler handler, int page) throws JSONException {
-        DribbleApiClient.get("shots/popular", params, handler, page);
+        DribbleApiClient.get("shots/popular", null, handler, page);
     }
 
     public void getEveryoneShots(AsyncHttpResponseHandler handler, int page) throws JSONException {
-        DribbleApiClient.get("shots/everyone", params, handler, page);
+        DribbleApiClient.get("shots/everyone", null, handler, page);
     }
 
     public void getDebutsShots(AsyncHttpResponseHandler handler, int page) throws JSONException {
-        DribbleApiClient.get("shots/debuts", params, handler, page);
+        DribbleApiClient.get("shots/debuts", null, handler, page);
     }
 
     public void getShotComments(int shotId, AsyncHttpResponseHandler handler, int page) throws JSONException {
-        DribbleApiClient.get("shots/" + Integer.toString(shotId) + "/comments", params, handler, page);
+        DribbleApiClient.get("shots/" + Integer.toString(shotId) + "/comments", null, handler, page);
     }
 }

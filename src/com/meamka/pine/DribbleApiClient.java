@@ -8,6 +8,8 @@ package com.meamka.pine;
  * To change this template use File | Settings | File Templates.
  */
 
+import android.util.Log;
+import android.widget.Toast;
 import com.loopj.android.http.*;
 
 

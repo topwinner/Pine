@@ -7,13 +7,12 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.*;
 import android.widget.*;
 import com.koushikdutta.urlimageviewhelper.UrlImageViewHelper;
 import com.loopj.android.http.JsonHttpResponseHandler;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import org.json.*;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -35,8 +34,7 @@ public class ShotActivity extends Activity {
     ArrayList<Comment> commentsList;
 
     private ListView commentsView;
-    private TextView commentPageView;
-    private TextView commentPagesCountView;
+    private View footerView;
     private Button loadMoreBtn;
 
     private int commentsPage;
@@ -44,7 +42,14 @@ public class ShotActivity extends Activity {
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.shot_view_landscape);
+
+        Configuration configuration = getResources().getConfiguration();
+
+        if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            setContentView(R.layout.shot_view_landscape);
+        } else {
+            setContentView(R.layout.shot_view_portrait);
+        }
 
         ActionBar actionBar = getActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
@@ -55,9 +60,11 @@ public class ShotActivity extends Activity {
         commentsPage = 1;
 
         setupActivity();
-
     }
 
+    /**
+     * Load initial data and set listeners.
+     */
     private void setupActivity() {
         commentsView = (ListView)findViewById(R.id.comments_view);
         ImageView shotImageView = (ImageView)findViewById(R.id.shot_image);
@@ -66,8 +73,9 @@ public class ShotActivity extends Activity {
         TextView shotPlayerName = (TextView)findViewById(R.id.player_name);
         TextView shotDate = (TextView)findViewById(R.id.shot_date);
 
+        // Add footer view, will be removed if comment page is last
         LayoutInflater inflater = (LayoutInflater)getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View footerView = inflater.inflate(R.layout.comments_list_footer, null, false);
+        footerView = inflater.inflate(R.layout.comments_list_footer, null, false);
         commentsView.addFooterView(footerView);
 
         loadMoreBtn = (Button)findViewById(R.id.load_more_btn);
@@ -75,6 +83,7 @@ public class ShotActivity extends Activity {
         Bundle extras = getIntent().getExtras();
         final int shotId = extras.getInt("id");
 
+        // Sets initial shot data
         UrlImageViewHelper.setUrlDrawable(shotImageView, extras.getString("image_url"));
         UrlImageViewHelper.setUrlDrawable(playerAvatarView, extras.getString("avatar_url"));
 
@@ -87,12 +96,25 @@ public class ShotActivity extends Activity {
         } catch (JSONException e) {
             Toast.makeText(getApplicationContext(), R.string.error_parse_json, Toast.LENGTH_SHORT).show();
         }
+        
+        playerAvatarView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent shotViewIntent = new Intent();
+                shotViewIntent.setClass(getApplicationContext(), PlayerActivity.class);
+                shotViewIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                shotViewIntent.putExtra("url", getIntent().getExtras().getString("player_url"));
+                shotViewIntent.putExtra("player_name", getIntent().getExtras().getString("player_name"));
+                shotViewIntent.putExtra("avatar_url", getIntent().getExtras().getString("avatar_url"));
+                startActivity(shotViewIntent);
+            }
+        });
 
         loadMoreBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 try {
-                    client.getShotComments(shotId, commentsHandler, ++commentsPage);
+                    client.getShotComments(shotId, commentsHandler, commentsPage);
                 } catch (JSONException e) {
                     Toast.makeText(getApplicationContext(), R.string.error_parse_json, Toast.LENGTH_SHORT).show();
                 }
@@ -100,6 +122,11 @@ public class ShotActivity extends Activity {
         });
     }
 
+    /**
+     * Handles configuration change event.
+     * In this case load different layout related to device orientation
+     * @param newConfig
+     */
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
@@ -115,7 +142,6 @@ public class ShotActivity extends Activity {
 
     @Override
     public boolean  onCreateOptionsMenu(Menu menu) {
-
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.shot_menu, menu);
 
@@ -145,16 +171,17 @@ public class ShotActivity extends Activity {
         }
     }
 
+    /**
+     * Handles JSON response from dribbble API.
+     * Populate comments list and update comments view.
+     */
     public JsonHttpResponseHandler commentsHandler = new JsonHttpResponseHandler() {
         @Override
         public void onSuccess(String response) {
 
-            int size = 0;
             try {
                 JSONObject json_data = new JSONObject(response);
                 JSONArray json_comments = json_data.getJSONArray("comments");
-
-                size = json_comments.length();
 
                 commentsPage = json_data.getInt("page");
                 commentsPagesCount = json_data.getInt("pages");
@@ -173,6 +200,7 @@ public class ShotActivity extends Activity {
 
                     Player player = new Player();
                     player.setName(json_player.getString("name"));
+                    player.setUrl(new URL(json_player.getString("url")));
 
                     String avatar_url = json_player.getString("avatar_url");
                     if (!avatar_url.startsWith("http")) {
@@ -195,21 +223,21 @@ public class ShotActivity extends Activity {
                 e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             }
 
-            commentsAdapter = new CommentsAdapter(getApplicationContext(), commentsList);
-            commentsView.setAdapter(commentsAdapter);
-            commentsAdapter.notifyDataSetChanged();
-            
-            if (commentsPage < commentsPagesCount) {
-                loadMoreBtn.setEnabled(true);
+            // Create new CommentsAdapter if it's not set
+            if (commentsView.getAdapter() == null) {
+                commentsAdapter = new CommentsAdapter(getApplicationContext(), commentsList);
+                commentsView.setAdapter(commentsAdapter);
             } else {
-                loadMoreBtn.setEnabled(false);
+                commentsAdapter.notifyDataSetChanged();
             }
 
-            Toast.makeText(
-                    getApplicationContext(),
-                    "Loaded " + Integer.toString(size) + " comments",
-                    Toast.LENGTH_SHORT
-            ).show();
+            // Check whether loadMoreBtn should be visible
+            if (commentsPage >= commentsPagesCount) {
+                commentsView.removeFooterView(footerView);
+//                loadMoreBtn.setVisibility(View.INVISIBLE);
+            }
+
+            commentsPage++;
         }
     };
 }

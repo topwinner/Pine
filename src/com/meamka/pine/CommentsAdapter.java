@@ -9,6 +9,8 @@ package com.meamka.pine;
  */
 
 import android.content.Context;
+import android.content.Intent;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,8 +31,9 @@ import java.util.ArrayList;
  */
 public class CommentsAdapter extends BaseAdapter {
 
-    Context mContext;
+    private Context mContext;
     private ArrayList<Comment> data;
+    private Comment comment;
 
     public CommentsAdapter(Context context, ArrayList<Comment> data) {
 //        super(context, resource, ArrayList<Shot> data);
@@ -53,13 +56,14 @@ public class CommentsAdapter extends BaseAdapter {
 
         layout.setTag(position);
 
-        Comment comment = data.get(position);
+        comment = data.get(position);
 
         ImageView imageView = (ImageView)layout.findViewById(R.id.comment_player_avatar);
         UrlImageViewHelper.setUrlDrawable(imageView, comment.getPlayer().getAvatarUrl().toString());
 
         TextView commentBodyView = (TextView)layout.findViewById(R.id.comment_body);
-        commentBodyView.setText(comment.getBody());
+        commentBodyView.setText(Html.fromHtml(comment.getBody()));
+        commentBodyView.setLinksClickable(true);
 
         TextView commentPlayerView = (TextView)layout.findViewById(R.id.comment_player_name);
         commentPlayerView.setText(comment.getPlayer().getName());
@@ -67,15 +71,19 @@ public class CommentsAdapter extends BaseAdapter {
         TextView commentDateView = (TextView)layout.findViewById(R.id.comment_created_at);
         commentDateView.setText(comment.getCreatedAt().toLocaleString());
 
-//        if (comment.getPage() != 0 && comment.getPageCount() != 0) {
-//            TextView commentsPages = (TextView)layout.findViewById(R.id.comments_pages);
-//            commentsPages.setText(mContext.getString(R.string.page) +
-//                    " " + Integer.toString(comment.getPage()) + " " +
-//                    mContext.getString(R.string.of) +
-//                    " " + Integer.toString(comment.getPageCount())
-//            );
-//        }
-
+        //@TODO: Click on comment author's avatar should open player's page
+//        imageView.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Intent shotViewIntent = new Intent();
+//                shotViewIntent.setClass(mContext, PlayerActivity.class);
+//                shotViewIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//                shotViewIntent.putExtra("url", comment.getPlayer().getUrl().toString());
+//                shotViewIntent.putExtra("player_name", comment.getPlayer().getName());
+//                shotViewIntent.putExtra("avatar_url", comment.getPlayer().getAvatarUrl().toString());
+//                mContext.startActivity(shotViewIntent);
+//            }
+//        });
         return layout;
     }
 

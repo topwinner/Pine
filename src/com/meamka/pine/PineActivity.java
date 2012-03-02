@@ -8,6 +8,7 @@ import android.app.*;
 //import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.*;
 import android.widget.*;
 //import com.koushikdutta.urlimageviewhelper.UrlImageViewHelper;
@@ -33,12 +34,18 @@ public class PineActivity extends Activity
     private GridView popularShotsView;
     private GridView everyoneShotsView;
     private GridView debutShotsView;
+
+    private Button loadMoreShotsBtn;
     
     public int activeTab;
 
     final int TAG_POPULAR = 1;
     final int TAG_EVERYONE = 2;
     final int TAG_DEBUT = 3;
+    
+    private int popularPage = 1;
+    private int everyonePage = 1;
+    private int debutPage = 1;
 
     public boolean popularLoaded = false;
     public boolean everyoneLoaded = false;
@@ -57,48 +64,62 @@ public class PineActivity extends Activity
         ActionBar actionBar = getActionBar();
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 
+        loadMoreShotsBtn = (Button)findViewById(R.id.load_more_shots);
+
+        loadMoreShotsBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                try {
+                    switch (activeTab) {
+                        case TAG_POPULAR:
+                            client.getPopularShots(shotsResponseHandler, ++popularPage);
+                            break;
+                        case TAG_EVERYONE:
+                            client.getEveryoneShots(shotsResponseHandler, ++everyonePage);
+                            break;
+                        case TAG_DEBUT:
+                            client.getDebutsShots(shotsResponseHandler, ++debutPage);
+                            break;
+                    }
+                } catch (JSONException e) {
+                    Toast toast = Toast.makeText(getApplicationContext(), getString(R.string.error_parse_json), Toast.LENGTH_SHORT);
+                    toast.show();
+                }
+            }
+        });
+
+        // Create and assing tabs
         Tab tabA = actionBar.newTab().setText(getString(R.string.popular)).setTag(TAG_POPULAR);
         Tab tabB = actionBar.newTab().setText(getString(R.string.everyone)).setTag(TAG_EVERYONE);
         Tab tabC = actionBar.newTab().setText(getString(R.string.debut)).setTag(TAG_DEBUT);
 
-        Fragment fragmentA = new AFragmentTab();
-        Fragment fragmentB = new BFragmentTab();
-        Fragment fragmentC = new CFragmentTab();
+        Fragment fragmentPopular = new PopularShotsFragmentTab();
+        Fragment fragmentEveryone = new EveryoneShotsFragmentTab();
+        Fragment fragmentDebut = new DebutShotsFragmentTab();
 
-        tabA.setTabListener(new MyTabListener(fragmentA));
-        tabB.setTabListener(new MyTabListener(fragmentB));
-        tabC.setTabListener(new MyTabListener(fragmentC));
+        tabA.setTabListener(new GridViewTabsListener(fragmentPopular));
+        tabB.setTabListener(new GridViewTabsListener(fragmentEveryone));
+        tabC.setTabListener(new GridViewTabsListener(fragmentDebut));
 
         actionBar.addTab(tabA);
         actionBar.addTab(tabB);
         actionBar.addTab(tabC);
 
-//        everyoneShotsView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-//                //To change body of implemented methods use File | Settings | File Templates.
-////                Shot shot = (Shot)everyoneAdapter.getItem(position);
-////                Toast toast = Toast.makeText(getApplicationContext(), "Shot clicked: " + Integer.toString(position), Toast.LENGTH_SHORT);
-////                toast.show();
-////                Log.d("PINE","Position Clicked ["+position+"] with item id ["+shot.getTitle()+"]");
-//            }
-//        });
-
-
+        // Load data for 1st screen when app is loading
         try {
             switch (activeTab) {
                 case TAG_POPULAR:
-                    client.getPopularShots(popularShotsHandler, 1);
+                    client.getPopularShots(shotsResponseHandler, popularPage);
                     break;
                 case TAG_EVERYONE:
-                    client.getEveryoneShots(popularShotsHandler, 1);
+                    client.getEveryoneShots(shotsResponseHandler, everyonePage);
                     break;
                 case TAG_DEBUT:
-                    client.getDebutsShots(popularShotsHandler, 1);
+                    client.getDebutsShots(shotsResponseHandler, debutPage);
                     break;
             }
         } catch (JSONException e) {
-            Toast toast = Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT);
+            Toast toast = Toast.makeText(getApplicationContext(), getString(R.string.error_parse_json), Toast.LENGTH_SHORT);
             toast.show();
         }
     }
@@ -119,13 +140,13 @@ public class PineActivity extends Activity
                 try {
                     switch (activeTab) {
                         case TAG_POPULAR:
-                            client.getPopularShots(popularShotsHandler, 1);
+                            client.getPopularShots(shotsResponseHandler, popularPage);
                             break;
                         case TAG_EVERYONE:
-                            client.getEveryoneShots(popularShotsHandler, 1);
+                            client.getEveryoneShots(shotsResponseHandler, everyonePage);
                             break;
                         case TAG_DEBUT:
-                            client.getDebutsShots(popularShotsHandler, 1);
+                            client.getDebutsShots(shotsResponseHandler, debutPage);
                             break;
                     }
                     return true;
@@ -141,17 +162,23 @@ public class PineActivity extends Activity
     /**
      * Handle client response
      */
-    public JsonHttpResponseHandler popularShotsHandler = new JsonHttpResponseHandler() {
+    public JsonHttpResponseHandler shotsResponseHandler = new JsonHttpResponseHandler() {
         @Override
         public void onSuccess(String response) {
             ArrayList<Shot> shots = new ArrayList<Shot>();
+
+            int page = 1;
+            int pages = 1;
 
             try {
                 JSONObject  json_data = new JSONObject(response);
                 JSONArray json_shots = json_data.getJSONArray("shots");
 
-                Toast toast = Toast.makeText(getApplicationContext(), getString(R.string.shot_loaded) + ' ' + Integer.toString(json_shots.length()), Toast.LENGTH_SHORT);
-                toast.show();
+                page = json_data.getInt("page");
+                pages = json_data.getInt("pages");
+
+                Log.d("PINE_DEBUG", json_data.getString("page"));
+                Log.d("PINE_DEBUG", json_data.getString("pages"));
 
                 for (int i=0; i<json_shots.length(); i++)
                 {
@@ -177,6 +204,7 @@ public class PineActivity extends Activity
                     
                     Player player = new Player();
                     player.setName(json_player.getString("name"));
+                    player.setUrl(new URL(json_player.getString("url")));
                     
                     String avatar_url = json_player.getString("avatar_url");
                     
@@ -200,35 +228,46 @@ public class PineActivity extends Activity
                 Toast.makeText(getApplicationContext(), "ParseException", Toast.LENGTH_SHORT).show();
                 e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             }
-
-//            mAdapter = new ShotAdapter(getApplicationContext(), shots);
-
+            
             switch (activeTab) {
                 case TAG_POPULAR:
                     popularShotsView = (GridView)findViewById(R.id.popular_shots_view);
                     popularAdapter = new ShotAdapter(getApplicationContext(), shots);
-                    popularShotsView.setAdapter(popularAdapter);
-                    popularAdapter.notifyDataSetChanged();
+                    if (popularShotsView.getAdapter() == null) {
+                        popularShotsView.setAdapter(popularAdapter);
+                    } else {
+                        popularAdapter.notifyDataSetChanged();
+                    }
                     popularShotsView.setOnItemClickListener(shotClickListener);
+                    // Set current page
+                    popularPage = page;
+                    // Hide Load More btn if all pages reached.
                     break;
 
                 case TAG_EVERYONE:
                     everyoneShotsView = (GridView)findViewById(R.id.everyone_shots_view);
-                    everyoneAdapter = new ShotAdapter(getApplicationContext(), shots);
-                    everyoneShotsView.setAdapter(everyoneAdapter);
+                    if (everyoneShotsView.getAdapter() == null) {
+                        everyoneAdapter = new ShotAdapter(getApplicationContext(), shots);
+                    } else  {
+                        everyoneShotsView.setAdapter(everyoneAdapter);
+                    }
                     everyoneAdapter.notifyDataSetChanged();
                     everyoneShotsView.setOnItemClickListener(shotClickListener);
+                    everyonePage = page;
                     break;
 
                 case TAG_DEBUT:
                     debutShotsView= (GridView)findViewById(R.id.debut_shots_view);
-                    debutAdapter = new ShotAdapter(getApplicationContext(), shots);
-                    debutShotsView.setAdapter(debutAdapter);
-                    debutAdapter.notifyDataSetChanged();
+                    if (debutShotsView.getAdapter() == null) {
+                        debutAdapter = new ShotAdapter(getApplicationContext(), shots);
+                        debutShotsView.setAdapter(debutAdapter);
+                    } else {
+                        debutAdapter.notifyDataSetChanged();
+                    }
                     debutShotsView.setOnItemClickListener(shotClickListener);
+                    debutPage = page;
                     break;
             }
-
         }
 
         @Override
@@ -244,10 +283,10 @@ public class PineActivity extends Activity
         }
     };
 
-    protected class MyTabListener implements ActionBar.TabListener {
+    protected class GridViewTabsListener implements ActionBar.TabListener {
         private Fragment fragment;
 
-        public MyTabListener(Fragment fragment) {
+        public GridViewTabsListener(Fragment fragment) {
             this.fragment = fragment;
         }
 
@@ -267,19 +306,19 @@ public class PineActivity extends Activity
                 switch (activeTab) {
                     case TAG_POPULAR:
                         if (!popularLoaded) {
-                            client.getPopularShots(popularShotsHandler, 1);
+                            client.getPopularShots(shotsResponseHandler, popularPage);
                             popularLoaded = true;
                         }
                         break;
                     case TAG_EVERYONE:
                         if (!everyoneLoaded) {
-                            client.getEveryoneShots(popularShotsHandler, 1);
+                            client.getEveryoneShots(shotsResponseHandler, everyonePage);
                             everyoneLoaded = true;
                         }
                         break;
                     case TAG_DEBUT:
                         if (!debutLoaded) {
-                            client.getDebutsShots(popularShotsHandler, 1);
+                            client.getDebutsShots(shotsResponseHandler, debutPage);
                             debutLoaded = true;
                         }
                         break;
@@ -331,6 +370,7 @@ public class PineActivity extends Activity
             shotViewIntent.putExtra("image_url", shot.getImageUrl().toString());
             shotViewIntent.putExtra("url", shot.getUrl().toString());
             shotViewIntent.putExtra("date", shot.getCreatedAt().toLocaleString());
+            shotViewIntent.putExtra("player_url", shot.getPlayer().getUrl().toString());
             shotViewIntent.putExtra("player_name", shot.getPlayer().getName());
             shotViewIntent.putExtra("avatar_url", shot.getPlayer().getAvatarUrl().toString());
             startActivity(shotViewIntent);

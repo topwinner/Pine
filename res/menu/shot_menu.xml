@@ -2,6 +2,11 @@
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!--<item android:id="@+id/menu_bookmark"-->
+          <!--android:title="@string/menu_bookmark"-->
+          <!--android:showAsAction="ifRoom"-->
+          <!--android:icon="@android:drawable/ic_menu_star" />-->
+
     <item android:id="@+id/menu_share"
           android:title="@string/menu_share"
           android:showAsAction="ifRoom"

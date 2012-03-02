@@ -2,6 +2,9 @@
 <resources>
     <!-- General app strings -->
     <string name="app_name">Pine</string>
+    <string name="player">Player</string>
+    <string name="shot">Shot</string>
+
     <string name="popular">Популярные</string>
     <string name="everyone">Все</string>
     <string name="debut">Дебюты</string>
@@ -17,12 +20,10 @@
     <string name="menu_reload">Обновить</string>
     <string name="menu_share">Отправить через…</string>
     <string name="menu_view_in_browser">Посмотреть в браузере</string>
+    <string name="menu_bookmark">Закладки</string>
 
     <!-- Shot view strings -->
     <string name="comments">Комментарии</string>
-
-    <string name="player">игрок:</string>
-    <string name="date">дата:</string>
 
     <string name="views">посмотрели</string>
     <string name="likes">понравилось</string>

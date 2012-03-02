@@ -13,7 +13,7 @@ import android.view.ViewGroup;
  * Time: 12:50
  * To change this template use File | Settings | File Templates.
  */
-public class AFragmentTab extends Fragment{
+public class PopularShotsFragmentTab extends Fragment{
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
